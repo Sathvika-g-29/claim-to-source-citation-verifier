@@ -1,0 +1,268 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>CiteCheck</title>
+<style>
+:root{
+  --bg:#f6f5f1;--card:#fff;--ink:#1c1b19;--muted:#6b6962;--line:#e4e1d8;--accent:#2f4bd8;
+  --ok:#1f8a4c;--ok-bg:#dff3e7;--weak:#a86a00;--weak-bg:#fdf0cf;--bad:#c0392b;--bad-bg:#fbdcd8;--unv:#5f6670;--unv-bg:#e6e8eb;
+}
+@media (prefers-color-scheme:dark){:root{
+  --bg:#141412;--card:#1d1d1a;--ink:#f0eee8;--muted:#a09d94;--line:#34332e;--accent:#8ea2ff;
+  --ok:#5fd18b;--ok-bg:#16301f;--weak:#f0b84a;--weak-bg:#35290e;--bad:#ff8a7a;--bad-bg:#3b1b17;--unv:#b4bac2;--unv-bg:#2a2d31;}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.55 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+header{display:flex;align-items:center;gap:12px;padding:14px 24px;border-bottom:1px solid var(--line);background:var(--card);position:sticky;top:0;z-index:5}
+.logo{font-weight:700;font-size:20px;letter-spacing:-.02em}.logo span{color:var(--accent)}
+.tag{color:var(--muted);font-size:13px}
+.badge{margin-left:auto;font-size:12px;padding:3px 10px;border:1px solid var(--line);border-radius:99px;color:var(--muted)}
+main{max-width:1280px;margin:0 auto;padding:20px 24px 60px;display:grid;grid-template-columns:minmax(320px,5fr) 7fr;gap:20px}
+@media(max-width:900px){main{grid-template-columns:1fr;padding:16px}}
+.card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:16px}
+h2{font-size:13px;text-transform:uppercase;letter-spacing:.07em;color:var(--muted);margin:0 0 10px;font-weight:600}
+textarea,input[type=text]{width:100%;font:inherit;color:inherit;background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:10px}
+textarea{resize:vertical;min-height:300px;font-size:14px}
+button{font:inherit;cursor:pointer;border-radius:8px;border:1px solid var(--line);background:var(--card);color:var(--ink);padding:8px 14px}
+button.primary{background:var(--accent);border-color:var(--accent);color:#fff;font-weight:600}
+button:disabled{opacity:.5;cursor:wait}
+.row{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-top:10px}
+.tabs{display:flex;gap:4px;margin-bottom:12px}.tab{border:0;background:none;padding:6px 12px;border-radius:8px;color:var(--muted)}.tab.on{background:var(--bg);color:var(--ink);font-weight:600}
+details{margin-top:10px;font-size:14px}summary{cursor:pointer;color:var(--muted)}
+.src{display:grid;grid-template-columns:70px 1fr;gap:8px;margin-top:8px}.src textarea{min-height:60px}
+.hidden{display:none}
+.summary{display:flex;gap:16px;align-items:center;flex-wrap:wrap}
+.score{font-size:46px;font-weight:700;letter-spacing:-.03em;line-height:1}.score small{font-size:14px;color:var(--muted);font-weight:500;letter-spacing:0}
+.chips{display:flex;gap:8px;flex-wrap:wrap}
+.chip{padding:3px 10px;border-radius:99px;font-size:13px;font-weight:600}
+.v-SUPPORTED{background:var(--ok-bg);color:var(--ok)}.v-WEAK{background:var(--weak-bg);color:var(--weak)}
+.v-PENDING{background:var(--unv-bg);color:var(--muted)}.v-MISMATCHED{background:var(--bad-bg);color:var(--bad)}.v-UNVERIFIABLE{background:var(--unv-bg);color:var(--unv)}
+.doc{white-space:pre-wrap;font:15px/1.75 Georgia,"Times New Roman",serif;margin-top:6px}
+mark{border-radius:4px;padding:1px 2px;cursor:pointer;color:inherit}
+mark.v-PENDING{background:var(--unv-bg);border-bottom:2px dotted var(--muted)}mark.v-SUPPORTED{background:var(--ok-bg)}mark.v-WEAK{background:var(--weak-bg)}mark.v-MISMATCHED{background:var(--bad-bg)}mark.v-UNVERIFIABLE{background:var(--unv-bg)}
+mark.sel{outline:2px solid var(--accent)}
+.claims{display:flex;flex-direction:column;gap:8px;margin-top:6px}
+.claim{border:1px solid var(--line);border-radius:10px;padding:10px 12px;cursor:pointer;background:var(--card)}
+.claim.sel{border-color:var(--accent);box-shadow:0 0 0 1px var(--accent)}
+.claim .top{display:flex;gap:8px;align-items:center;margin-bottom:4px}.claim .txt{font-size:14px}
+.detail{margin-top:12px;border-top:1px dashed var(--line);padding-top:12px}
+.meta{font-size:12px;color:var(--muted)}
+blockquote{margin:8px 0;padding:8px 12px;border-left:3px solid var(--accent);background:var(--bg);border-radius:0 8px 8px 0;font-size:14px}
+.ver{color:var(--ok);font-size:12px;font-weight:600}.unver{color:var(--bad);font-size:12px;font-weight:600}
+.bar{height:6px;border-radius:9px;background:var(--line);overflow:hidden;width:120px}.bar i{display:block;height:100%;background:var(--accent)}
+.pass{font-size:13px;color:var(--muted);margin:6px 0;padding:6px 8px;border:1px solid var(--line);border-radius:8px}
+.pass em{background:var(--weak-bg);color:var(--ink);font-style:normal}
+.err{color:var(--bad);margin-top:10px}.empty{color:var(--muted);padding:40px 10px;text-align:center}
+.spin{display:inline-block;width:14px;height:14px;border:2px solid #fff6;border-top-color:#fff;border-radius:50%;animation:s 1s linear infinite;vertical-align:-2px;margin-right:6px}
+@keyframes s{to{transform:rotate(360deg)}}
+img.prev{max-width:100%;max-height:220px;border-radius:8px;margin-top:10px;border:1px solid var(--line)}
+</style>
+</head>
+<body>
+<header>
+  <div class="logo">Cite<span>Check</span></div>
+  <div class="tag">Does the source really say that?</div>
+  <div class="badge" id="badge">loading…</div>
+</header>
+<main>
+  <section class="card">
+    <div class="tabs">
+      <button class="tab on" data-tab="doc">Document</button>
+      <button class="tab" data-tab="img">Image check</button>
+    </div>
+
+    <div id="tab-doc">
+      <h2>Paste a paper or report with its reference list</h2>
+      <textarea id="text" placeholder="Paste text with citations like [1] and a References section…"></textarea>
+      <details>
+        <summary>Optional: paste the source text yourself (when a reference can't be fetched)</summary>
+        <div id="srcs"></div>
+        <button id="addsrc" style="margin-top:8px">+ Add source</button>
+      </details>
+      <div class="row">
+        <button class="primary" id="run">Check citations</button>
+        <button id="sample">Load sample</button>
+        <button id="sample2">Load demo (4 verdicts)</button>
+        <label class="meta">Max claims <input type="text" id="limit" value="8" style="width:48px;padding:4px 6px"></label>
+      </div>
+      <div class="err" id="err"></div>
+    </div>
+
+    <div id="tab-img" class="hidden">
+      <h2>Check a claim against a screenshot, chart, or table</h2>
+      <textarea id="iclaim" style="min-height:90px" placeholder="Claim, e.g. 'Model X reaches 92% accuracy on benchmark Y'"></textarea>
+      <div class="row"><input type="file" id="ifile" accept="image/*"></div>
+      <img id="iprev" class="prev hidden">
+      <div class="row"><button class="primary" id="irun">Check against image</button></div>
+      <div class="err" id="ierr"></div>
+      <div id="ires"></div>
+    </div>
+  </section>
+
+  <section>
+    <div id="out"><div class="card empty">Paste a document and press <b>Check citations</b>.<br>Each claim gets one of four verdicts, with the exact evidence from the source.</div></div>
+  </section>
+</main>
+
+<script>
+const $ = s => document.querySelector(s);
+const LABEL = {PENDING:"Checking…", SUPPORTED:"Supported", WEAK:"Weakly supported", MISMATCHED:"Mismatched", UNVERIFIABLE:"Unverifiable"};
+let DATA = null, SEL = null;
+
+function h(tag, attrs, ...kids){
+  const e = document.createElement(tag);
+  for (const [k,v] of Object.entries(attrs||{})){
+    if (k === "class") e.className = v; else if (k.startsWith("on")) e.addEventListener(k.slice(2), v); else e.setAttribute(k, v);
+  }
+  for (const c of kids.flat()) if (c != null) e.append(c.nodeType ? c : document.createTextNode(c));
+  return e;
+}
+const chip = v => h("span", {class:"chip v-"+v}, LABEL[v]);
+
+fetch("/api/info").then(r=>r.json()).then(i=>{
+  $("#badge").textContent = `${i.provider} · ${i.model}` + (i.has_key ? "" : "  (no API key!)");
+}).catch(()=>{ $("#badge").textContent = "server offline"; });
+
+document.querySelectorAll(".tab").forEach(b => b.onclick = () => {
+  document.querySelectorAll(".tab").forEach(x => x.classList.toggle("on", x === b));
+  $("#tab-doc").classList.toggle("hidden", b.dataset.tab !== "doc");
+  $("#tab-img").classList.toggle("hidden", b.dataset.tab !== "img");
+});
+
+function addSrc(){
+  $("#srcs").append(h("div", {class:"src"}, h("input",{type:"text",placeholder:"Ref #",class:"sk"}), h("textarea",{placeholder:"Paste the cited source's text…",class:"sv"})));
+}
+$("#addsrc").onclick = addSrc;
+$("#sample").onclick = async () => { $("#text").value = (await (await fetch("/api/sample?n=1")).json()).text; };
+$("#sample2").onclick = async () => { $("#text").value = (await (await fetch("/api/sample?n=2")).json()).text; };
+
+function liveSummary(){
+  const counts = {SUPPORTED:0, WEAK:0, MISMATCHED:0, UNVERIFIABLE:0}, W = {SUPPORTED:1, WEAK:.5, MISMATCHED:0};
+  const done = DATA.claims.filter(c => c.verdict);
+  done.forEach(c => counts[c.verdict]++);
+  const ver = done.filter(c => c.verdict !== "UNVERIFIABLE");
+  return {counts, total: DATA.claims.length, pending: DATA.claims.length - done.length,
+    trust_score: ver.length ? Math.round(100 * ver.reduce((s, c) => s + W[c.verdict], 0) / ver.length) : null,
+    coverage: done.length ? Math.round(100 * ver.length / done.length) : 0};
+}
+
+$("#run").onclick = async () => {
+  const btn = $("#run"), t0 = Date.now(); $("#err").textContent = ""; DATA = null; SEL = null;
+  const sources = {};
+  document.querySelectorAll(".src").forEach(r => { const k = r.querySelector(".sk").value.trim(), v = r.querySelector(".sv").value.trim(); if (k && v) sources[k] = v; });
+  const label = () => { const n = DATA ? DATA.claims.filter(c => c.verdict).length : 0, tot = DATA ? DATA.claims.length : 0;
+    btn.innerHTML = `<span class="spin"></span>Checking… ${Math.round((Date.now()-t0)/1000)}s` + (tot ? ` · ${n}/${tot}` : ""); };
+  btn.disabled = true; label(); const tick = setInterval(label, 1000);
+  $("#out").innerHTML = '<div class="card empty">Reading the document and finding claims…</div>';
+  try{
+    const r = await fetch("/api/verify_stream", {method:"POST", headers:{"Content-Type":"application/json"},
+      body: JSON.stringify({text: $("#text").value, sources, limit: parseInt($("#limit").value)||8})});
+    if (!r.ok){ const j = await r.json().catch(() => ({})); throw new Error(j.detail || r.statusText); }
+    const reader = r.body.getReader(), dec = new TextDecoder(); let buf = "";
+    for (;;){
+      const {value, done} = await reader.read(); if (done) break;
+      buf += dec.decode(value, {stream:true}); let i;
+      while ((i = buf.indexOf("\n")) >= 0){ const line = buf.slice(0, i).trim(); buf = buf.slice(i + 1); if (line) handle(JSON.parse(line)); }
+    }
+  }catch(e){ $("#err").textContent = "Error: " + e.message; if (!DATA) $("#out").innerHTML = ""; }
+  finally{ clearInterval(tick); btn.disabled = false; btn.textContent = "Check citations"; }
+};
+
+function handle(ev){
+  if (ev.type === "error") throw new Error(ev.message);
+  if (ev.type === "cached"){ DATA = ev.data; render(); return; }
+  if (ev.type === "claims"){ DATA = {claims: ev.claims, references: ev.references, summary: null}; render(); return; }
+  if (ev.type === "result"){ const i = DATA.claims.findIndex(c => c.id === ev.item.id); DATA.claims[i] = ev.item; render(); if (SEL != null) select(SEL); return; }
+  if (ev.type === "done"){ DATA.summary = ev.summary; render(); if (SEL != null) select(SEL); }
+}
+
+function esc(s){ return s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"); }
+
+function render(){
+  const out = $("#out"); out.innerHTML = "";
+  const S = DATA.summary || liveSummary();
+  out.append(h("div",{class:"card"},
+    h("div",{class:"summary"},
+      h("div",{class:"score"}, S.trust_score == null ? "–" : S.trust_score, h("small"," / 100 trust")),
+      h("div",{},
+        h("div",{class:"chips"}, ["SUPPORTED","WEAK","MISMATCHED","UNVERIFIABLE"].map(v => h("span",{class:"chip v-"+v}, `${S.counts[v]} ${LABEL[v]}`))),
+        h("div",{class:"meta",style:"margin-top:6px"}, (S.pending ? `${S.pending} of ${S.total} still being checked…` : `${S.total} claims checked · ${S.coverage}% could be verified against a retrieved source`) + (DATA.cached ? " · cached result" : ""))),
+      h("div",{style:"margin-left:auto",class:"row"}, h("button",{onclick:()=>dl("citecheck.json",JSON.stringify(DATA,null,2))},"JSON"), h("button",{onclick:()=>dl("citecheck.md",toMd())},"Markdown")))));
+
+  // document with highlighted claims
+  const text = $("#text").value, bodyEnd = (() => { let m, last = -1; const re = /^\s*(#+\s*)?(references|bibliography|works cited|sources)\s*:?\s*$/gim; while ((m = re.exec(text))) last = m.index; return last < 0 ? text.length : last; })();
+  const body = text.slice(0, bodyEnd), ref = text.slice(bodyEnd);
+  const spans = [];
+  DATA.claims.forEach(c => {
+    const re = new RegExp(c.claim.trim().split(/\s+/).map(esc).join("\\s+")); const m = re.exec(body);
+    if (m) spans.push({s:m.index, e:m.index+m[0].length, c});
+  });
+  spans.sort((a,b)=>a.s-b.s);
+  const doc = h("div",{class:"doc"}); let pos = 0;
+  spans.forEach(sp => { if (sp.s < pos) return; doc.append(body.slice(pos, sp.s));
+    doc.append(h("mark",{class:"v-"+(sp.c.verdict||"PENDING"), "data-id":sp.c.id, onclick:()=>select(sp.c.id)}, body.slice(sp.s, sp.e))); pos = sp.e; });
+  doc.append(body.slice(pos), h("span",{class:"meta"}, ref));
+  out.append(h("div",{class:"card",style:"margin-top:14px"}, h("h2",{},"Document (click a highlight)"), doc));
+
+  // claim list
+  out.append(h("div",{class:"card",style:"margin-top:14px"}, h("h2",{},"Claims"),
+    h("div",{class:"claims"}, DATA.claims.map(c => h("div",{class:"claim","data-id":c.id,onclick:()=>select(c.id)},
+      h("div",{class:"top"}, chip(c.verdict||"PENDING"), h("span",{class:"meta"}, "ref " + c.citations.map(x=>x.key).join(", "))),
+      h("div",{class:"txt"}, c.claim),
+      h("div",{class:"detail hidden"}))))));
+}
+
+function select(id){
+  SEL = id;
+  document.querySelectorAll("mark").forEach(m => m.classList.toggle("sel", +m.dataset.id === id));
+  document.querySelectorAll(".claim").forEach(el => {
+    const on = +el.dataset.id === id; el.classList.toggle("sel", on);
+    const d = el.querySelector(".detail"); d.classList.toggle("hidden", !on); d.innerHTML = "";
+    if (on){ d.append(detail(DATA.claims.find(c => c.id === id))); el.scrollIntoView({block:"nearest", behavior:"smooth"}); }
+  });
+}
+
+function detail(c){
+  const box = h("div");
+  if (!c.results) return h("div",{class:"meta"}, "Fetching the cited source and checking it…");
+  c.results.forEach(r => {
+    box.append(h("div",{style:"margin-bottom:12px"},
+      h("div",{class:"row",style:"margin:0 0 4px"}, chip(r.verdict),
+        h("div",{class:"bar",title:"confidence"}, h("i",{style:`width:${Math.round(r.confidence*100)}%`})), h("span",{class:"meta"}, Math.round(r.confidence*100)+"% confident"),
+        h("span",{class:"meta"}, `· evidence: ${r.evidence_level.replace("_"," ")} · ${r.origin}`)),
+      h("div",{}, r.reason),
+      r.evidence_quote ? h("blockquote",{}, "“"+r.evidence_quote+"” ", h("span",{class:r.quote_verified?"ver":"unver"}, r.quote_verified ? "✓ found in source" : "✗ not found")) : null,
+      r.passages && r.passages.length ? h("details",{}, h("summary",{}, `Retrieved passages (${r.passages.length})`),
+        r.passages.map(p => { const i = r.evidence_quote ? p.indexOf(r.evidence_quote) : -1;
+          return h("div",{class:"pass"}, i < 0 ? p : [p.slice(0,i), h("em",{}, r.evidence_quote), p.slice(i + r.evidence_quote.length)]); })) : null,
+      h("div",{class:"meta"}, r.entry)));
+  });
+  return box;
+}
+
+function dl(name, content){ const a = document.createElement("a"); a.href = URL.createObjectURL(new Blob([content])); a.download = name; a.click(); }
+function toMd(){
+  const S = DATA.summary;
+  return `# CiteCheck report\n\nTrust score: ${S.trust_score ?? "n/a"}/100 · coverage ${S.coverage}%\n\n` + DATA.claims.map(c =>
+    `## ${LABEL[c.verdict]}\n> ${c.claim}\n\n` + c.results.map(r => `- ref ${r.key} (${r.evidence_level}): ${r.reason}${r.evidence_quote ? `\n  - evidence: "${r.evidence_quote}"` : ""}`).join("\n")).join("\n\n");
+}
+
+// image tab
+$("#ifile").onchange = e => { const f = e.target.files[0]; if (!f) return; const p = $("#iprev"); p.src = URL.createObjectURL(f); p.classList.remove("hidden"); };
+$("#irun").onclick = async () => {
+  const f = $("#ifile").files[0], claim = $("#iclaim").value.trim(); $("#ierr").textContent = ""; $("#ires").innerHTML = "";
+  if (!f || !claim){ $("#ierr").textContent = "Add a claim and an image."; return; }
+  const btn = $("#irun"); btn.disabled = true; btn.innerHTML = '<span class="spin"></span>Checking…';
+  try{
+    const fd = new FormData(); fd.append("claim", claim); fd.append("file", f);
+    const r = await fetch("/api/image", {method:"POST", body:fd}); const j = await r.json();
+    if (!r.ok) throw new Error(j.detail || r.statusText);
+    $("#ires").append(h("div",{class:"detail"}, chip(j.verdict), " ", h("span",{class:"meta"}, Math.round(j.confidence*100)+"% confident"),
+      h("p",{}, j.reason), h("blockquote",{}, j.evidence_description)));
+  }catch(e){ $("#ierr").textContent = "Error: " + e.message; }
+  finally{ btn.disabled = false; btn.textContent = "Check against image"; }
+};
+</script>
+</body>
+</html>

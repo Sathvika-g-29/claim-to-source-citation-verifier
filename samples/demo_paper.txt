@@ -1,0 +1,9 @@
+Efficient Transformers for Long Documents: A Short Survey
+
+The Transformer architecture replaced recurrence with self-attention and reached state-of-the-art translation quality on WMT 2014 English-to-German [1]. Self-attention cost grows quadratically with sequence length, which limits long inputs [1]. Sparse attention patterns reduced this cost to linear in sequence length while matching dense models on every benchmark tested [2]. Pretraining a bidirectional encoder on masked language modeling substantially improved performance on eleven NLP tasks [3]. Retrieval-augmented generation has been shown to eliminate hallucinations in open-domain question answering [4].
+
+References
+[1] Vaswani, A. et al. Attention Is All You Need. NeurIPS 2017. arXiv:1706.03762
+[2] Child, R. et al. Generating Long Sequences with Sparse Transformers. 2019. arXiv:1904.10509
+[3] Devlin, J. et al. BERT: Pre-training of Deep Bidirectional Transformers for Language Understanding. 2018. arXiv:1810.04805
+[4] Lewis, P. et al. Retrieval-Augmented Generation for Knowledge-Intensive NLP Tasks. NeurIPS 2020. arXiv:2005.11401
